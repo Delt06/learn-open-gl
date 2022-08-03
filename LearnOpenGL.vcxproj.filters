@@ -28,7 +28,7 @@
     </Text>
   </ItemGroup>
   <ItemGroup>
-    <CopyFileToFolders Include="shaders\fragment.glsl" />
-    <CopyFileToFolders Include="shaders\vertex.glsl" />
+    <CopyFileToFolders Include="shaders\shader.frag" />
+    <CopyFileToFolders Include="shaders\shader.vert" />
   </ItemGroup>
 </Project>

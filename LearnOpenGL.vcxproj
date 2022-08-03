@@ -139,10 +139,10 @@
     <Text Include=".gitignore" />
   </ItemGroup>
   <ItemGroup>
-    <CopyFileToFolders Include="shaders\fragment.glsl">
+    <CopyFileToFolders Include="shaders\shader.frag">
       <FileType>Document</FileType>
     </CopyFileToFolders>
-    <CopyFileToFolders Include="shaders\vertex.glsl">
+    <CopyFileToFolders Include="shaders\shader.vert">
       <FileType>Document</FileType>
     </CopyFileToFolders>
   </ItemGroup>

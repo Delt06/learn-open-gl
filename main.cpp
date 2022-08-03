@@ -105,8 +105,8 @@ int main()
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-	const std::string vertex_shader_source = read_all_lines("./shaders/vertex.glsl");
-	const std::string fragment_shader_source = read_all_lines("./shaders/fragment.glsl");
+	const std::string vertex_shader_source = read_all_lines("./shaders/shader.vert");
+	const std::string fragment_shader_source = read_all_lines("./shaders/shader.frag");
 
 	const unsigned int vertex_shader = glCreateShader(GL_VERTEX_SHADER);
 	compile_shader(vertex_shader, vertex_shader_source.c_str());
