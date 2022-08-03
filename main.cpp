@@ -1,6 +1,8 @@
+#include <fstream>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <sstream>
 
 void framebuffer_size_callback(GLFWwindow* window, const int width, const int height)
 {
@@ -13,22 +15,24 @@ void process_input(GLFWwindow* window)
 		glfwSetWindowShouldClose(window, true);
 }
 
-const char* vertex_shader_source = "#version 330 core\n"
-	"layout (location = 0) in vec3 aPos;\n"
-	"void main()\n"
-	"{\n"
-	"   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-	"}\0";
-
-const char* fragment_shader_source = "#version 330 core\n"
-	"out vec4 FragColor;\n"
-	"void main(){\n"
-	"   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-	"}\0";
-
 constexpr int info_log_size = 512;
 char info_log[info_log_size];
 int success;
+
+std::string read_all_lines(const std::string& path)
+{
+	const std::ifstream file(path);
+	std::string result;
+
+	if (file)
+	{
+		std::ostringstream output_stream;
+		output_stream << file.rdbuf();
+		result = output_stream.str();
+	}
+
+	return result;
+}
 
 void compile_shader(const unsigned int shader, const char* source)
 {
@@ -101,11 +105,13 @@ int main()
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
+	const std::string vertex_shader_source = read_all_lines("./shaders/vertex.glsl");
+	const std::string fragment_shader_source = read_all_lines("./shaders/fragment.glsl");
 
 	const unsigned int vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-	compile_shader(vertex_shader, vertex_shader_source);
+	compile_shader(vertex_shader, vertex_shader_source.c_str());
 	const unsigned int fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-	compile_shader(fragment_shader, fragment_shader_source);
+	compile_shader(fragment_shader, fragment_shader_source.c_str());
 
 	const unsigned int shader_program = glCreateProgram();
 	glAttachShader(shader_program, vertex_shader);
