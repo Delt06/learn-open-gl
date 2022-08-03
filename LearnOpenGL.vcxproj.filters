@@ -31,4 +31,7 @@
     <CopyFileToFolders Include="shaders\shader.frag" />
     <CopyFileToFolders Include="shaders\shader.vert" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="README.md" />
+  </ItemGroup>
 </Project>
