@@ -78,15 +78,14 @@ int main()
 	glViewport(0, 0, initial_width, initial_height);
 
 	constexpr float vertices[] = {
-		0.5f, 0.5f, 0.0f,
-		0.5f, -0.5f, 0.0f,
-		-0.5f, -0.5f, 0.05f,
-		-0.5f, 0.5f, 0.05f,
+		// positions      // colors
+		0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
+		-0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
+		0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f,
 	};
 
 	constexpr unsigned int indices[] = {
-		0, 1, 3,
-		1, 2, 3,
+		0, 1, 2,
 	};
 
 	unsigned int vao; // vertex array object
@@ -97,8 +96,12 @@ int main()
 	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), static_cast<void*>(nullptr));
+
+	constexpr size_t stride = 6 * sizeof(float);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, reinterpret_cast<void*>(0));
 	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, reinterpret_cast<void*>(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
 
 	unsigned int ebo; // element buffer object
 	glGenBuffers(1, &ebo);
@@ -139,6 +142,11 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		glUseProgram(shader_program);
+
+		const float time_value = static_cast<float>(glfwGetTime());
+		const int time_location = glGetUniformLocation(shader_program, "time");
+		glUniform1f(time_location, time_value);
+
 		glBindVertexArray(vao);
 		glDrawElements(GL_TRIANGLES, sizeof indices / sizeof(unsigned int), GL_UNSIGNED_INT, nullptr);
 		glBindVertexArray(0);
