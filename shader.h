@@ -5,6 +5,9 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
 
 class shader
 {
@@ -18,6 +21,7 @@ public:
 	void set_bool(const std::string& name, bool value) const;
 	void set_int(const std::string& name, int value) const;
 	void set_float(const std::string& name, float value) const;
+	void set_mat4(const std::string& name, glm::mat4 value) const;
 
 private:
 	void compile_shader(const char* vertex_shader_code, const char* fragment_shader_code);
@@ -121,4 +125,9 @@ inline void shader::set_int(const std::string& name, const int value) const
 inline void shader::set_float(const std::string& name, const float value) const
 {
 	glUniform1f(glGetUniformLocation(id, name.c_str()), value);
+}
+
+inline void shader::set_mat4(const std::string& name, glm::mat4 value) const
+{
+	glUniformMatrix4fv(glGetUniformLocation(id, name.c_str()), 1, GL_FALSE, glm::value_ptr(value));
 }

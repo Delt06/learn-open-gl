@@ -3,6 +3,9 @@
 #include <iostream>
 #include "shader.h"
 #include "stb_image.h"
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
 
 void framebuffer_size_callback(GLFWwindow* window, const int width, const int height)
 {
@@ -106,6 +109,10 @@ int main()
 
 	stbi_image_free(data);
 
+	auto transform = glm::mat4(1.0f);
+	transform = rotate(transform, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	transform = scale(transform, glm::vec3(0.5f, 0.5f, 0.5f));
+
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -125,6 +132,8 @@ int main()
 		glBindTexture(GL_TEXTURE_2D, texture);
 		// map the texture uniform to the 0'th slot
 		shader.set_int("texture1", 0);
+
+		shader.set_mat4("transform", transform);
 
 		glBindVertexArray(vao);
 		glDrawElements(GL_TRIANGLES, sizeof indices / sizeof(unsigned int), GL_UNSIGNED_INT, nullptr);
