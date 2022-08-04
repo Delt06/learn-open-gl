@@ -1,8 +1,7 @@
-#include <fstream>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
-#include <sstream>
+#include "shader.h"
 
 void framebuffer_size_callback(GLFWwindow* window, const int width, const int height)
 {
@@ -15,38 +14,6 @@ void process_input(GLFWwindow* window)
 		glfwSetWindowShouldClose(window, true);
 }
 
-constexpr int info_log_size = 512;
-char info_log[info_log_size];
-int success;
-
-std::string read_all_lines(const std::string& path)
-{
-	const std::ifstream file(path);
-	std::string result;
-
-	if (file)
-	{
-		std::ostringstream output_stream;
-		output_stream << file.rdbuf();
-		result = output_stream.str();
-	}
-
-	return result;
-}
-
-void compile_shader(const unsigned int shader, const char* source)
-{
-	glShaderSource(shader, 1, &source, nullptr);
-	glCompileShader(shader);
-
-	glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-	if (!success)
-	{
-		glGetShaderInfoLog(shader, info_log_size, nullptr, info_log);
-		std::cout << "ERROR::SHADER::COMPILATION_FAILED\n" << info_log << std::endl;
-	}
-}
-
 int main()
 {
 	glfwInit();
@@ -57,7 +24,7 @@ int main()
 	constexpr int initial_width = 800;
 	constexpr int initial_height = 600;
 
-	GLFWwindow* window = glfwCreateWindow(initial_width, initial_height, "LearnOpenGL", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(initial_width, initial_height, "LearnOpenGL", nullptr, NULL);
 	if (window == nullptr)
 	{
 		std::cout << "Failed to create GLFW window" << std::endl;
@@ -108,28 +75,7 @@ int main()
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-	const std::string vertex_shader_source = read_all_lines("./shaders/shader.vert");
-	const std::string fragment_shader_source = read_all_lines("./shaders/shader.frag");
-
-	const unsigned int vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-	compile_shader(vertex_shader, vertex_shader_source.c_str());
-	const unsigned int fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-	compile_shader(fragment_shader, fragment_shader_source.c_str());
-
-	const unsigned int shader_program = glCreateProgram();
-	glAttachShader(shader_program, vertex_shader);
-	glAttachShader(shader_program, fragment_shader);
-	glLinkProgram(shader_program);
-
-	glGetProgramiv(shader_program, GL_LINK_STATUS, &success);
-	if (!success)
-	{
-		glGetProgramInfoLog(shader_program, info_log_size, nullptr, info_log);
-		std::cout << "ERROR::SHADER_PROGRAM::LINK_FAILED\n" << info_log << std::endl;
-	}
-
-	glDeleteShader(vertex_shader);
-	glDeleteShader(fragment_shader);
+	const shader shader("./shaders/shader.vert", "./shaders/shader.frag");
 
 
 	while (!glfwWindowShouldClose(window))
@@ -141,11 +87,9 @@ int main()
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		glUseProgram(shader_program);
-
-		const float time_value = static_cast<float>(glfwGetTime());
-		const int time_location = glGetUniformLocation(shader_program, "time");
-		glUniform1f(time_location, time_value);
+		shader.use();
+		const auto time_value = static_cast<float>(glfwGetTime());
+		shader.set_float("time", time_value);
 
 		glBindVertexArray(vao);
 		glDrawElements(GL_TRIANGLES, sizeof indices / sizeof(unsigned int), GL_UNSIGNED_INT, nullptr);
