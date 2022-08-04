@@ -2,6 +2,7 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include "shader.h"
+#include "stb_image.h"
 
 void framebuffer_size_callback(GLFWwindow* window, const int width, const int height)
 {
@@ -45,14 +46,16 @@ int main()
 	glViewport(0, 0, initial_width, initial_height);
 
 	constexpr float vertices[] = {
-		// positions      // colors
-		0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
-		-0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
-		0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f,
+		// positions		// colors         // uvs
+		0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top right
+		0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // bottom right
+		-0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom left
+		-0.5f, 0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f // top left
 	};
 
 	constexpr unsigned int indices[] = {
-		0, 1, 2,
+		0, 1, 3,
+		1, 2, 3,
 	};
 
 	unsigned int vao; // vertex array object
@@ -64,11 +67,13 @@ int main()
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-	constexpr size_t stride = 6 * sizeof(float);
+	constexpr size_t stride = 8 * sizeof(float);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, reinterpret_cast<void*>(0));
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, reinterpret_cast<void*>(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride, reinterpret_cast<void*>(6 * sizeof(float)));
+	glEnableVertexAttribArray(2);
 
 	unsigned int ebo; // element buffer object
 	glGenBuffers(1, &ebo);
@@ -76,6 +81,30 @@ int main()
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
 	const shader shader("./shaders/shader.vert", "./shaders/shader.frag");
+
+	unsigned int texture;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+
+	int width, height, num_channels;
+	stbi_set_flip_vertically_on_load(true);
+	unsigned char* data = stbi_load("./images/container.jpg", &width, &height, &num_channels, 0);
+	if (data)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else
+	{
+		std::cout << "Failed to load texture" << std::endl;
+	}
+
+	stbi_image_free(data);
 
 
 	while (!glfwWindowShouldClose(window))
@@ -90,6 +119,12 @@ int main()
 		shader.use();
 		const auto time_value = static_cast<float>(glfwGetTime());
 		shader.set_float("time", time_value);
+
+		// bind the texture to 0'th slot
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture);
+		// map the texture uniform to the 0'th slot
+		shader.set_int("texture1", 0);
 
 		glBindVertexArray(vao);
 		glDrawElements(GL_TRIANGLES, sizeof indices / sizeof(unsigned int), GL_UNSIGNED_INT, nullptr);

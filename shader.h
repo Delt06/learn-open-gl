@@ -96,8 +96,6 @@ inline shader::shader(const char* vertex_path, const char* fragment_path)
 		std::cout << "ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ" << std::endl;
 	}
 
-	std::cout << vertex_code;
-
 	const char* vertex_shader_code = vertex_code.c_str();
 	const char* fragment_shader_code = fragment_code.c_str();
 
