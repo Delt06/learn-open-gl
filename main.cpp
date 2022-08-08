@@ -10,6 +10,13 @@
 int window_width = 800;
 int window_height = 600;
 
+glm::vec3 camera_pos = glm::vec3(0.0f, 0.0f, 3.0f);
+glm::vec3 camera_front = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 camera_up = glm::vec3(0.0f, 1.0f, 0.0f);
+
+float delta_time = 0.0f;
+double last_frame_time = 0.0f;
+
 void framebuffer_size_callback(GLFWwindow* window, const int width, const int height)
 {
 	glViewport(0, 0, width, height);
@@ -21,7 +28,22 @@ void process_input(GLFWwindow* window)
 {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
+
+	constexpr float camera_speed = 2.5f;
+	const float camera_delta_position = camera_speed * delta_time;
+	const glm::vec3 camera_right = normalize(cross(camera_front, camera_up));
+
+
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		camera_pos += camera_delta_position * camera_front;
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		camera_pos -= camera_delta_position * camera_front;
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		camera_pos -= camera_delta_position * camera_right;
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		camera_pos += camera_delta_position * camera_right;
 }
+
 
 int main()
 {
@@ -160,9 +182,12 @@ int main()
 		glm::vec3(-1.3f, 1.0f, -1.5f)
 	};
 
-
 	while (!glfwWindowShouldClose(window))
 	{
+		const double current_frame_time = glfwGetTime();
+		delta_time = static_cast<float>(current_frame_time - last_frame_time);
+		last_frame_time = current_frame_time;
+
 		// input
 		process_input(window);
 
@@ -173,7 +198,7 @@ int main()
 		glEnable(GL_DEPTH_TEST);
 
 		shader.use();
-		const auto time_value = static_cast<float>(glfwGetTime());
+		const auto time_value = static_cast<float>(current_frame_time);
 		shader.set_float("time", time_value);
 
 		// bind the texture to 0'th slot
@@ -182,7 +207,7 @@ int main()
 		// map the texture uniform to the 0'th slot
 		shader.set_int("texture1", 0);
 
-		const auto view = translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f));
+		const auto view = lookAt(camera_pos, camera_pos + camera_front, camera_up);
 		const auto projection = glm::perspective(glm::radians(45.0f),
 		                                         static_cast<float>(window_width) / static_cast<float>(window_height),
 		                                         0.1f, 100.0f);
@@ -195,7 +220,7 @@ int main()
 		for (unsigned int i = 0; i < 10; i++)
 		{
 			glm::mat4 model = translate(glm::mat4(1.0f), cube_positions[i]);
-			const float angle = 20.0f * i;
+			const float angle = 20.0f * static_cast<float>(i);
 			model = rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
 			shader.set_mat4("model", model);
 
