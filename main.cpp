@@ -6,22 +6,18 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
+#include "camera.h"
 
 int window_width = 800;
 int window_height = 600;
 
-glm::vec3 camera_pos = glm::vec3(0.0f, 0.0f, 3.0f);
-glm::vec3 camera_front = glm::vec3(0.0f, 0.0f, -1.0f);
-glm::vec3 camera_up = glm::vec3(0.0f, 1.0f, 0.0f);
-
 float delta_time = 0.0f;
 double last_frame_time = 0.0;
 
-float yaw = -90.0f, pitch = 0.0f;
 float last_mouse_x, last_mouse_y;
 bool mouse_callback_called = false;
-float min_fov = 1.0f, max_fov = 45.0f;
-float fov = max_fov;
+
+camera scene_camera(glm::vec3(0.0f, 0.0f, 3.0f));
 
 void framebuffer_size_callback(GLFWwindow* window, const int width, const int height)
 {
@@ -35,30 +31,14 @@ void process_input(GLFWwindow* window)
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
 
-	constexpr float camera_speed = 2.5f;
-	const float camera_delta_position = camera_speed * delta_time;
-	const glm::vec3 camera_right = normalize(cross(camera_front, camera_up));
-
-
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		camera_pos += camera_delta_position * camera_front;
+		scene_camera.process_keyboard(forward, delta_time);
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		camera_pos -= camera_delta_position * camera_front;
+		scene_camera.process_keyboard(backward, delta_time);
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		camera_pos -= camera_delta_position * camera_right;
+		scene_camera.process_keyboard(left, delta_time);
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		camera_pos += camera_delta_position * camera_right;
-}
-
-void recalculate_camera_front()
-{
-	const glm::vec3 direction =
-	{
-		cos(glm::radians(yaw)) * cos(glm::radians(pitch)),
-		sin(glm::radians(pitch)),
-		sin(glm::radians(yaw)) * cos(glm::radians(pitch))
-	};
-	camera_front = normalize(direction);
+		scene_camera.process_keyboard(right, delta_time);
 }
 
 void mouse_callback(GLFWwindow* window, const double mouse_x, const double mouse_y)
@@ -73,25 +53,17 @@ void mouse_callback(GLFWwindow* window, const double mouse_x, const double mouse
 		mouse_callback_called = true;
 	}
 
-	float offset_x = mouse_x_f - last_mouse_x;
-	float offset_y = -(mouse_y_f - last_mouse_y);
+	const float offset_x = mouse_x_f - last_mouse_x;
+	const float offset_y = -(mouse_y_f - last_mouse_y);
 	last_mouse_x = mouse_x_f;
 	last_mouse_y = mouse_y_f;
 
-	constexpr float sensitivity = 0.1f;
-	offset_x *= sensitivity;
-	offset_y *= sensitivity;
-
-	yaw += offset_x;
-	pitch += offset_y;
-	pitch = glm::clamp(pitch, -89.0f, 89.0f);
-	recalculate_camera_front();
+	scene_camera.process_mouse_movement(offset_x, offset_y);
 }
 
 void scroll_callback(GLFWwindow* window, double offset_x, const double offset_y)
 {
-	fov -= static_cast<float>(offset_y);
-	fov = glm::clamp(fov, min_fov, max_fov);
+	scene_camera.process_mouse_scroll(static_cast<float>(offset_y));
 }
 
 
@@ -236,8 +208,6 @@ int main()
 		glm::vec3(-1.3f, 1.0f, -1.5f)
 	};
 
-	recalculate_camera_front();
-
 	while (!glfwWindowShouldClose(window))
 	{
 		const double current_frame_time = glfwGetTime();
@@ -263,8 +233,8 @@ int main()
 		// map the texture uniform to the 0'th slot
 		shader.set_int("texture1", 0);
 
-		const auto view = lookAt(camera_pos, camera_pos + camera_front, camera_up);
-		const auto projection = glm::perspective(glm::radians(fov),
+		const auto view = scene_camera.get_view_matrix();
+		const auto projection = glm::perspective(glm::radians(scene_camera.zoom),
 		                                         static_cast<float>(window_width) / static_cast<float>(window_height),
 		                                         0.1f, 100.0f);
 
