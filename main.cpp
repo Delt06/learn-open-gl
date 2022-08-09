@@ -15,7 +15,13 @@ glm::vec3 camera_front = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 camera_up = glm::vec3(0.0f, 1.0f, 0.0f);
 
 float delta_time = 0.0f;
-double last_frame_time = 0.0f;
+double last_frame_time = 0.0;
+
+float yaw = -90.0f, pitch = 0.0f;
+float last_mouse_x, last_mouse_y;
+bool mouse_callback_called = false;
+float min_fov = 1.0f, max_fov = 45.0f;
+float fov = max_fov;
 
 void framebuffer_size_callback(GLFWwindow* window, const int width, const int height)
 {
@@ -44,6 +50,50 @@ void process_input(GLFWwindow* window)
 		camera_pos += camera_delta_position * camera_right;
 }
 
+void recalculate_camera_front()
+{
+	const glm::vec3 direction =
+	{
+		cos(glm::radians(yaw)) * cos(glm::radians(pitch)),
+		sin(glm::radians(pitch)),
+		sin(glm::radians(yaw)) * cos(glm::radians(pitch))
+	};
+	camera_front = normalize(direction);
+}
+
+void mouse_callback(GLFWwindow* window, const double mouse_x, const double mouse_y)
+{
+	const auto mouse_x_f = static_cast<float>(mouse_x);
+	const auto mouse_y_f = static_cast<float>(mouse_y);
+
+	if (!mouse_callback_called)
+	{
+		last_mouse_x = mouse_x_f;
+		last_mouse_x = mouse_y_f;
+		mouse_callback_called = true;
+	}
+
+	float offset_x = mouse_x_f - last_mouse_x;
+	float offset_y = -(mouse_y_f - last_mouse_y);
+	last_mouse_x = mouse_x_f;
+	last_mouse_y = mouse_y_f;
+
+	constexpr float sensitivity = 0.1f;
+	offset_x *= sensitivity;
+	offset_y *= sensitivity;
+
+	yaw += offset_x;
+	pitch += offset_y;
+	pitch = glm::clamp(pitch, -89.0f, 89.0f);
+	recalculate_camera_front();
+}
+
+void scroll_callback(GLFWwindow* window, double offset_x, const double offset_y)
+{
+	fov -= static_cast<float>(offset_y);
+	fov = glm::clamp(fov, min_fov, max_fov);
+}
+
 
 int main()
 {
@@ -60,6 +110,10 @@ int main()
 		return -1;
 	}
 
+
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetCursorPosCallback(window, mouse_callback);
+	glfwSetScrollCallback(window, scroll_callback);
 
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 	glfwMakeContextCurrent(window);
@@ -182,6 +236,8 @@ int main()
 		glm::vec3(-1.3f, 1.0f, -1.5f)
 	};
 
+	recalculate_camera_front();
+
 	while (!glfwWindowShouldClose(window))
 	{
 		const double current_frame_time = glfwGetTime();
@@ -208,7 +264,7 @@ int main()
 		shader.set_int("texture1", 0);
 
 		const auto view = lookAt(camera_pos, camera_pos + camera_front, camera_up);
-		const auto projection = glm::perspective(glm::radians(45.0f),
+		const auto projection = glm::perspective(glm::radians(fov),
 		                                         static_cast<float>(window_width) / static_cast<float>(window_height),
 		                                         0.1f, 100.0f);
 
