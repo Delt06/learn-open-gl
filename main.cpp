@@ -99,47 +99,47 @@ int main()
 	glViewport(0, 0, window_width, window_height);
 
 	constexpr float vertices[] = {
-		-0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
-		0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
-		0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-		0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-		-0.5f, 0.5f, -0.5f, 0.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f,
+		0.5f, -0.5f, -0.5f,
+		0.5f, 0.5f, -0.5f,
+		0.5f, 0.5f, -0.5f,
+		-0.5f, 0.5f, -0.5f,
+		-0.5f, -0.5f, -0.5f,
 
-		-0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
-		0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
-		0.5f, 0.5f, 0.5f, 1.0f, 1.0f,
-		0.5f, 0.5f, 0.5f, 1.0f, 1.0f,
-		-0.5f, 0.5f, 0.5f, 0.0f, 1.0f,
-		-0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
+		-0.5f, -0.5f, 0.5f,
+		0.5f, -0.5f, 0.5f,
+		0.5f, 0.5f, 0.5f,
+		0.5f, 0.5f, 0.5f,
+		-0.5f, 0.5f, 0.5f,
+		-0.5f, -0.5f, 0.5f,
 
-		-0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-		-0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-		-0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
-		-0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+		-0.5f, 0.5f, 0.5f,
+		-0.5f, 0.5f, -0.5f,
+		-0.5f, -0.5f, -0.5f,
+		-0.5f, -0.5f, -0.5f,
+		-0.5f, -0.5f, 0.5f,
+		-0.5f, 0.5f, 0.5f,
 
-		0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-		0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-		0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-		0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-		0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
-		0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+		0.5f, 0.5f, 0.5f,
+		0.5f, 0.5f, -0.5f,
+		0.5f, -0.5f, -0.5f,
+		0.5f, -0.5f, -0.5f,
+		0.5f, -0.5f, 0.5f,
+		0.5f, 0.5f, 0.5f,
 
-		-0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-		0.5f, -0.5f, -0.5f, 1.0f, 1.0f,
-		0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
-		0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
-		-0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
-		-0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,
+		0.5f, -0.5f, -0.5f,
+		0.5f, -0.5f, 0.5f,
+		0.5f, -0.5f, 0.5f,
+		-0.5f, -0.5f, 0.5f,
+		-0.5f, -0.5f, -0.5f,
 
-		-0.5f, 0.5f, -0.5f, 0.0f, 1.0f,
-		0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-		0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-		0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-		-0.5f, 0.5f, 0.5f, 0.0f, 0.0f,
-		-0.5f, 0.5f, -0.5f, 0.0f, 1.0f
+		-0.5f, 0.5f, -0.5f,
+		0.5f, 0.5f, -0.5f,
+		0.5f, 0.5f, 0.5f,
+		0.5f, 0.5f, 0.5f,
+		-0.5f, 0.5f, 0.5f,
+		-0.5f, 0.5f, -0.5f
 	};
 
 	constexpr unsigned int indices[] = {
@@ -147,29 +147,30 @@ int main()
 		1, 2, 3,
 	};
 
-	unsigned int vao; // vertex array object
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
+	unsigned int cube_vao; // vertex array object
+	glGenVertexArrays(1, &cube_vao);
+	glBindVertexArray(cube_vao);
 
 	unsigned int vbo; // vertex buffer object
 	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-	constexpr size_t stride = 5 * sizeof(float);
+	constexpr size_t stride = 3 * sizeof(float);
 	// position
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, reinterpret_cast<void*>(0));
 	glEnableVertexAttribArray(0);
-	// UV
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stride, reinterpret_cast<void*>(3 * sizeof(float)));
-	glEnableVertexAttribArray(1);
 
-	unsigned int ebo; // element buffer object
-	glGenBuffers(1, &ebo);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+	unsigned int light_vao;
+	glGenVertexArrays(1, &light_vao);
+	glBindVertexArray(light_vao);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	// position
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, reinterpret_cast<void*>(0));
+	glEnableVertexAttribArray(0);
 
-	const shader shader("./shaders/shader.vert", "./shaders/shader.frag");
+	const shader cube_shader("./shaders/shader.vert", "./shaders/shader.frag");
+	const shader light_shader("./shaders/shader.vert", "./shaders/light_shader.frag");
 
 	unsigned int texture;
 	glGenTextures(1, &texture);
@@ -195,19 +196,6 @@ int main()
 
 	stbi_image_free(data);
 
-	constexpr glm::vec3 cube_positions[] = {
-		glm::vec3(0.0f, 0.0f, 0.0f),
-		glm::vec3(2.0f, 5.0f, -15.0f),
-		glm::vec3(-1.5f, -2.2f, -2.5f),
-		glm::vec3(-3.8f, -2.0f, -12.3f),
-		glm::vec3(2.4f, -0.4f, -3.5f),
-		glm::vec3(-1.7f, 3.0f, -7.5f),
-		glm::vec3(1.3f, -2.0f, -2.5f),
-		glm::vec3(1.5f, 2.0f, -2.5f),
-		glm::vec3(1.5f, 0.2f, -1.5f),
-		glm::vec3(-1.3f, 1.0f, -1.5f)
-	};
-
 	while (!glfwWindowShouldClose(window))
 	{
 		const double current_frame_time = glfwGetTime();
@@ -223,35 +211,33 @@ int main()
 
 		glEnable(GL_DEPTH_TEST);
 
-		shader.use();
-		const auto time_value = static_cast<float>(current_frame_time);
-		shader.set_float("time", time_value);
-
-		// bind the texture to 0'th slot
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture);
-		// map the texture uniform to the 0'th slot
-		shader.set_int("texture1", 0);
+		cube_shader.use();
+		cube_shader.set_vec3("objectColor", 1.0f, 0.5f, 0.31f);
+		cube_shader.set_vec3("lightColor", 1.0f, 1.0f, 1.0f);
 
 		const auto view = scene_camera.get_view_matrix();
 		const auto projection = glm::perspective(glm::radians(scene_camera.zoom),
 		                                         static_cast<float>(window_width) / static_cast<float>(window_height),
 		                                         0.1f, 100.0f);
 
-		shader.set_mat4("view", view);
-		shader.set_mat4("projection", projection);
+		cube_shader.set_mat4("view", view);
+		cube_shader.set_mat4("projection", projection);
+		auto model = glm::mat4(1.0f);
+		cube_shader.set_mat4("model", model);
+		glBindVertexArray(cube_vao);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
 
-		glBindVertexArray(vao);
+		glm::vec3 light_position(1.2f, 1.0f, 2.0f);
 
-		for (unsigned int i = 0; i < 10; i++)
-		{
-			glm::mat4 model = translate(glm::mat4(1.0f), cube_positions[i]);
-			const float angle = 20.0f * static_cast<float>(i);
-			model = rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-			shader.set_mat4("model", model);
-
-			glDrawArrays(GL_TRIANGLES, 0, 36);
-		}
+		light_shader.use();
+		light_shader.set_mat4("view", view);
+		light_shader.set_mat4("projection", projection);
+		model = glm::mat4(1.0f);
+		model = translate(model, light_position);
+		model = scale(model, glm::vec3(0.2f));
+		light_shader.set_mat4("model", model);
+		glBindVertexArray(light_vao);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
 
 		// check and call events and swap buffers
 		glfwSwapBuffers(window);
