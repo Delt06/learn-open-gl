@@ -23,6 +23,7 @@ public:
 	void set_float(const std::string& name, float value) const;
 	void set_mat4(const std::string& name, glm::mat4 value) const;
 	void set_vec3(const std::string& name, float x, float y, float z) const;
+	void set_vec3(const std::string& name, glm::vec3 value) const;
 
 private:
 	void compile_shader(const char* vertex_shader_code, const char* fragment_shader_code);
@@ -136,4 +137,9 @@ inline void shader::set_mat4(const std::string& name, glm::mat4 value) const
 inline void shader::set_vec3(const std::string& name, const float x, const float y, const float z) const
 {
 	glUniform3f(glGetUniformLocation(id, name.c_str()), x, y, z);
+}
+
+inline void shader::set_vec3(const std::string& name, const glm::vec3 value) const
+{
+	glUniform3f(glGetUniformLocation(id, name.c_str()), value.x, value.y, value.z);
 }
