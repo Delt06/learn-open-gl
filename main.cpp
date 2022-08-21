@@ -216,10 +216,18 @@ int main()
 		glEnable(GL_DEPTH_TEST);
 
 		cube_shader.use();
-		cube_shader.set_vec3("objectColor", 1.0f, 0.5f, 0.31f);
-		cube_shader.set_vec3("lightColor", 1.0f, 1.0f, 1.0f);
-		cube_shader.set_vec3("lightPos", light_position);
 		cube_shader.set_vec3("viewPos", scene_camera.position);
+
+		cube_shader.set_vec3("material.ambient", 1.0f, 0.5f, 0.31f);
+		cube_shader.set_vec3("material.diffuse", 1.0f, 0.5f, 0.31f);
+		cube_shader.set_vec3("material.specular", 0.5f, 0.5f, 0.5f);
+		cube_shader.set_float("material.shininess", 32.0f);
+
+		cube_shader.set_vec3("light.ambient", 0.2f, 0.2f, 0.2f);
+		cube_shader.set_vec3("light.diffuse", 0.5f, 0.5f, 0.5f);
+		cube_shader.set_vec3("light.specular", 1.0f, 1.0f, 1.0f);
+		cube_shader.set_vec3("light.position", light_position);
+
 
 		const auto view = scene_camera.get_view_matrix();
 		const auto projection = glm::perspective(glm::radians(scene_camera.zoom),
