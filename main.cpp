@@ -19,6 +19,8 @@ float last_mouse_x, last_mouse_y;
 bool mouse_callback_called = false;
 
 camera scene_camera(glm::vec3(0.0f, 0.0f, 3.0f));
+bool use_flashlight = true;
+bool flashlight_pressed = false;
 
 void framebuffer_size_callback(GLFWwindow* window, const int width, const int height)
 {
@@ -40,6 +42,19 @@ void process_input(GLFWwindow* window)
         scene_camera.process_keyboard(left, delta_time);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         scene_camera.process_keyboard(right, delta_time);
+
+    if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
+    {
+        if (!flashlight_pressed)
+        {
+            use_flashlight = !use_flashlight;
+            flashlight_pressed = true;
+        }
+    }
+    else
+    {
+        flashlight_pressed = false;
+    }
 }
 
 void mouse_callback(GLFWwindow* window, const double mouse_x, const double mouse_y)
@@ -231,7 +246,12 @@ int main()
         glm::vec3(-1.3f, 1.0f, -1.5f)
     };
 
-    constexpr glm::vec3 start_light_position(1.2f, 1.0f, 2.0f);
+    const std::vector<glm::vec3> start_light_positions = {
+        glm::vec3(0.7f, 0.2f, 2.0f),
+        glm::vec3(2.3f, -3.3f, -4.0f),
+        glm::vec3(-4.0f, 2.0f, -12.0f),
+        glm::vec3(0.0f, 0.0f, -3.0f)
+    };
 
     while (!glfwWindowShouldClose(window))
     {
@@ -242,15 +262,25 @@ int main()
         // input
         process_input(window);
 
+        // simulate
+
+        std::vector<glm::vec3> light_positions;
+
+        for (size_t i = 0; i < start_light_positions.size(); i++)
+        {
+            auto start_light_position = start_light_positions[i];
+            const auto angular_speed = 120 + glm::sin(4 * static_cast<double>(i)) * 30;
+            auto angle = static_cast<float>(glm::radians(current_frame_time * angular_speed));
+            auto rotation = angleAxis(angle, glm::vec3(0.0f, 1.0f, 0.0f));
+            auto light_position = rotation * glm::vec3(0.0f, 0.0f, 1.0f) + start_light_position;
+            light_positions.push_back(light_position);
+        }
+
         // render
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glEnable(GL_DEPTH_TEST);
-
-        glm::quat light_rotation = angleAxis(glm::radians(static_cast<float>(glfwGetTime()) * 180.0f),
-                                             glm::vec3(0.0f, 1.0f, 0.0f));
-        auto light_position = light_rotation * start_light_position;
 
         cube_shader.use();
         cube_shader.set_vec3("viewPos", scene_camera.position);
@@ -266,16 +296,21 @@ int main()
         cube_shader.set_vec3("light.diffuse", 0.5f, 0.5f, 0.5f);
         cube_shader.set_vec3("light.specular", 1.0f, 1.0f, 1.0f);
 
-        cube_shader.set_vec3("pointLight.position", light_position);
-        cube_shader.set_vec3("pointLight.diffuse", 0.5f, 0.5f, 0.5f);
-        cube_shader.set_vec3("pointLight.specular", 1.0f, 1.0f, 1.0f);
-        cube_shader.set_vec3("pointLight.attenuationCoefficients", 1.0f, 0.09f, 0.032f);
+        for (size_t i = 0; i < light_positions.size(); i++)
+        {
+            auto prefix = "pointLights[" + std::to_string(i) + "].";
+            cube_shader.set_vec3(prefix + "position", light_positions[i]);
+            cube_shader.set_vec3(prefix + "diffuse", 0.5f, 0.5f, 0.5f);
+            cube_shader.set_vec3(prefix + "specular", 1.0f, 1.0f, 1.0f);
+            cube_shader.set_vec3(prefix + "attenuationCoefficients", 1.0f, 0.09f, 0.032f);
+        }
 
+        const float flashlight_intensity = use_flashlight ? 1.0f : 0.0f;
         cube_shader.set_vec3("spotLight.position", scene_camera.position);
         cube_shader.set_vec3("spotLight.direction", scene_camera.direction_front);
         cube_shader.set_vec2("spotLight.cutOff", glm::cos(glm::radians(10.0f)), glm::cos(glm::radians(12.5f)));
-        cube_shader.set_vec3("spotLight.diffuse", 0.5f, 0.5f, 0.5f);
-        cube_shader.set_vec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
+        cube_shader.set_vec3("spotLight.diffuse", glm::vec3(0.5f, 0.5f, 0.5f) * flashlight_intensity);
+        cube_shader.set_vec3("spotLight.specular", glm::vec3(1.0f, 1.0f, 1.0f) * flashlight_intensity);
 
         const auto view = scene_camera.get_view_matrix();
         const auto projection = glm::perspective(glm::radians(scene_camera.zoom),
@@ -294,7 +329,7 @@ int main()
         glBindVertexArray(cube_vao);
 
 
-        for (unsigned int i = 0; i < cube_positions.size(); i++)
+        for (size_t i = 0; i < cube_positions.size(); i++)
         {
             model = glm::mat4(1.0f);
             model = translate(model, cube_positions[i]);
@@ -309,13 +344,16 @@ int main()
         light_shader.use();
         light_shader.set_mat4("projection", projection);
         light_shader.set_mat4("view", view);
-        model = glm::mat4(1.0f);
-        model = translate(model, light_position);
-        model = scale(model, glm::vec3(0.2f)); // a smaller cube
-        light_shader.set_mat4("model", model);
-
         glBindVertexArray(light_vao);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+
+        for (auto light_position : light_positions)
+        {
+            model = glm::mat4(1.0f);
+            model = translate(model, light_position);
+            model = scale(model, glm::vec3(0.2f));
+            light_shader.set_mat4("model", model);
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
 
         // check and call events and swap buffers
         glfwSwapBuffers(window);

@@ -43,8 +43,23 @@ uniform vec3 viewPos;
 
 uniform Material material;
 uniform DirectionalLight light;
-uniform PointLight pointLight;
+
+#define NR_POINT_LIGHTS 4
+uniform PointLight pointLights[NR_POINT_LIGHTS];
 uniform SpotLight spotLight;
+
+vec3 calculateDirectionalLight(const in DirectionalLight light, const vec3 diffuseColor, const vec3 specularColor, const float shininess, const vec3 normal, const vec3 viewDir)
+{
+    vec3 lightDir = light.direction;
+    float diffuseAttenuation = max(dot(normal, lightDir), 0.0);
+    vec3 diffuse = diffuseAttenuation * light.diffuse * diffuseColor;
+
+    vec3 reflectDir = reflect(-lightDir, normal);
+    float specularStrength = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+    vec3 specular = specularStrength * light.specular * specularColor;
+
+    return diffuse + specular;
+}
 
 vec3 calculatePointLight(const in PointLight light, const vec3 diffuseColor, const vec3 specularColor, const float shininess, const vec3 normal, const vec3 viewDir)
 {
@@ -87,22 +102,21 @@ void main()
 {
     vec3 diffuseColor = material.diffuse * vec3(texture(material.diffuseMap, TexCoords));
     vec3 specularColor = material.specular * vec3(texture(material.specularMap, TexCoords));
-    vec3 ambient = diffuseColor * light.ambient;
-
     vec3 normal = normalize(Normal);
-    vec3 lightDir = normalize(- light.direction);
-    float diffuseAttenuation = max(dot(normal, lightDir), 0.0);
-    vec3 diffuse = diffuseAttenuation * light.diffuse * diffuseColor;
-
     vec3 viewDir = normalize(viewPos - FragPos);
-    vec3 reflectDir = reflect(-lightDir, normal);
-    float specularStrength = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
-    vec3 specular = specularStrength * light.specular * specularColor;
 
-    vec3 result = ambient + diffuse + specular;
-
-    result += calculatePointLight(pointLight, diffuseColor, specularColor, material.shininess, normal, viewDir);
+    vec3 result = vec3(0.0f);
+    result += calculateDirectionalLight(light, diffuseColor, specularColor, material.shininess, normal, viewDir);
+    
+    for (int i = 0; i < NR_POINT_LIGHTS; i++) 
+    {
+        result += calculatePointLight(pointLights[i], diffuseColor, specularColor, material.shininess, normal, viewDir);
+    }
+    
     result += calculateSpotLight(spotLight, diffuseColor, specularColor, material.shininess, normal, viewDir);
+
+    vec3 ambient = diffuseColor * light.ambient;
+    result += ambient;
 
     FragColor = vec4(result, 1);
 }
