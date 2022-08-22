@@ -1,3 +1,7 @@
 *.dll filter=lfs diff=lfs merge=lfs -binary
 *.lib filter=lfs diff=lfs merge=lfs -binary
 *.exp filter=lfs diff=lfs merge=lfs -binary
+
+*.png filter=lfs diff=lfs merge=lfs -binary
+*.jpg filter=lfs diff=lfs merge=lfs -binary
+*.obj filter=lfs diff=lfs merge=lfs -binary

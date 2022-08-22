@@ -33,7 +33,7 @@ void mesh::draw(const shader& shader) const
         glBindTexture(GL_TEXTURE_2D, textures[i].id);
     }
 
-    glBindVertexArray(vbo_);
+    glBindVertexArray(vao_);
     glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(indices.size()), GL_UNSIGNED_INT, nullptr);
     glBindVertexArray(0);
 

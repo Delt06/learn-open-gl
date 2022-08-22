@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <assimp/types.h>
 #include <glm/glm.hpp>
 
 #include "shader.h"
@@ -17,6 +18,7 @@ struct texture
 {
     unsigned int id;
     std::string type;
+    std::string path;
 };
 
 class mesh
@@ -29,7 +31,7 @@ public:
     mesh(std::vector<vertex> vertices, std::vector<unsigned int> indices, std::vector<texture> textures);
 
     void draw(const shader& shader) const;
-    
+
 private:
     unsigned int vao_, vbo_, ebo_;
     void setup_mesh();
