@@ -117,6 +117,7 @@ int main()
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
+    glEnable(GL_CULL_FACE);
 
     glViewport(0, 0, window_width, window_height);
 
@@ -198,6 +199,8 @@ int main()
         // render
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        glCullFace(GL_BACK);
 
         // opaque pass
         glBlendFunc(GL_ONE, GL_ZERO);
