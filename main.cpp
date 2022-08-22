@@ -267,10 +267,15 @@ int main()
         cube_shader.set_vec3("light.specular", 1.0f, 1.0f, 1.0f);
 
         cube_shader.set_vec3("pointLight.position", light_position);
-        cube_shader.set_vec3("pointLight.ambient", 0.2f, 0.2f, 0.2f);
         cube_shader.set_vec3("pointLight.diffuse", 0.5f, 0.5f, 0.5f);
         cube_shader.set_vec3("pointLight.specular", 1.0f, 1.0f, 1.0f);
         cube_shader.set_vec3("pointLight.attenuationCoefficients", 1.0f, 0.09f, 0.032f);
+
+        cube_shader.set_vec3("spotLight.position", scene_camera.position);
+        cube_shader.set_vec3("spotLight.direction", scene_camera.direction_front);
+        cube_shader.set_vec2("spotLight.cutOff", glm::cos(glm::radians(10.0f)), glm::cos(glm::radians(12.5f)));
+        cube_shader.set_vec3("spotLight.diffuse", 0.5f, 0.5f, 0.5f);
+        cube_shader.set_vec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
 
         const auto view = scene_camera.get_view_matrix();
         const auto projection = glm::perspective(glm::radians(scene_camera.zoom),
