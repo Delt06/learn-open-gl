@@ -2,10 +2,11 @@
 
 struct Material {
     vec3 diffuse;
-    sampler2D diffuseMap;
     vec3 specular;
-    sampler2D specularMap;
     float shininess;
+
+    uniform sampler2D texture_diffuse1;
+    uniform sampler2D texture_specular1;
 };
 
 struct DirectionalLight {
@@ -100,8 +101,8 @@ vec3 calculateSpotLight(const in SpotLight light, const vec3 diffuseColor, const
 
 void main()
 {
-    vec3 diffuseColor = material.diffuse * vec3(texture(material.diffuseMap, TexCoords));
-    vec3 specularColor = material.specular * vec3(texture(material.specularMap, TexCoords));
+    vec3 diffuseColor = material.diffuse * vec3(texture(material.texture_diffuse1, TexCoords));
+    vec3 specularColor = material.specular * vec3(texture(material.texture_specular1, TexCoords));
     vec3 normal = normalize(Normal);
     vec3 viewDir = normalize(viewPos - FragPos);
 
