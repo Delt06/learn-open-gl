@@ -113,16 +113,21 @@ int main()
         return -1;
     }
 
-    stbi_set_flip_vertically_on_load(true);
     glEnable(GL_DEPTH_TEST);
 
     glViewport(0, 0, window_width, window_height);
 
     const shader lit_shader("./shaders/shader.vert", "./shaders/shader.frag");
     const shader light_shader("./shaders/shader.vert", "./shaders/light_shader.frag");
+    const shader grass_shader("./shaders/shader.vert", "./shaders/alpha_clip.frag");
 
     model backpack("./assets/backpack/backpack.obj");
     model cube("./assets/cube.obj");
+
+    model_params grass_model_params;
+    grass_model_params.texture_clamp = true;
+    grass_model_params.texture_flip = false;
+    model grass("./assets/grass/grass.obj", grass_model_params);
 
     const std::vector<glm::vec3> model_positions{
         glm::vec3(0.0f, 0.0f, 0.0f),
@@ -142,6 +147,14 @@ int main()
         glm::vec3(2.3f, -3.3f, -4.0f),
         glm::vec3(-4.0f, 2.0f, -12.0f),
         glm::vec3(0.0f, 0.0f, -3.0f)
+    };
+
+    std::vector<glm::vec3> vegetation = {
+        (glm::vec3(-1.5f, 0.0f, -0.48f)),
+        (glm::vec3(1.5f, 0.0f, 0.51f)),
+        (glm::vec3(0.0f, 0.0f, 0.7f)),
+        (glm::vec3(-0.3f, 0.0f, -2.3f)),
+        (glm::vec3(0.5f, 0.0f, -0.6f)),
     };
 
     while (!glfwWindowShouldClose(window))
@@ -235,6 +248,19 @@ int main()
             model = scale(model, glm::vec3(0.2f));
             light_shader.set_mat4("model", model);
             cube.draw(light_shader);
+        }
+
+        grass_shader.use();
+        grass_shader.set_mat4("projection", projection);
+        grass_shader.set_mat4("view", view);
+        grass_shader.set_float("material.alphaClipThreshold", 0.01f);
+
+        for (auto grass_position : vegetation)
+        {
+            model = glm::mat4(1.0f);
+            model = translate(model, grass_position);
+            grass_shader.set_mat4("model", model);
+            grass.draw(grass_shader);
         }
 
         // check and call events and swap buffers

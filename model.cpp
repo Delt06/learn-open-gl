@@ -7,7 +7,8 @@
 
 #include "stb_image.h"
 
-unsigned int texture_from_file(const char* path, const std::string& directory, bool gamma)
+unsigned int texture_from_file(const char* path, const std::string& directory, const model_params& model_params,
+                               bool gamma)
 {
     auto filename = std::string(path);
     filename = directory + '/' + filename;
@@ -19,7 +20,7 @@ unsigned int texture_from_file(const char* path, const std::string& directory, b
     unsigned char* data = stbi_load(filename.c_str(), &width, &height, &nr_components, 0);
     if (data)
     {
-        GLenum format = 0;
+        GLint format = 0;
         if (nr_components == 1)
             format = GL_RED;
         else if (nr_components == 3)
@@ -31,8 +32,9 @@ unsigned int texture_from_file(const char* path, const std::string& directory, b
         glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        const auto wrap_mode = model_params.texture_clamp ? GL_CLAMP_TO_EDGE : GL_REPEAT;
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap_mode);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap_mode);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
@@ -46,6 +48,12 @@ unsigned int texture_from_file(const char* path, const std::string& directory, b
     }
 
     return texture_id;
+}
+
+model::model(const std::string& path, const model_params& params):
+    params_(params)
+{
+    load_model(path);
 }
 
 void model::draw(const shader& shader) const
@@ -134,6 +142,7 @@ mesh model::process_mesh(const aiMesh* ai_mesh, const aiScene* scene)
 std::vector<texture> model::load_material_textures(const aiMaterial* material, const aiTextureType type,
                                                    const std::string& type_name)
 {
+    stbi_set_flip_vertically_on_load(params_.texture_flip);
     std::vector<texture> textures;
 
     for (unsigned int texture_index = 0; texture_index < material->GetTextureCount(type); ++texture_index)
@@ -155,7 +164,7 @@ std::vector<texture> model::load_material_textures(const aiMaterial* material, c
         if (skip) continue;
 
         texture texture;
-        texture.id = texture_from_file(path.C_Str(), directory_);
+        texture.id = texture_from_file(path.C_Str(), directory_, params_);
         texture.type = type_name;
         texture.path = path.C_Str();
         textures.push_back(texture);
