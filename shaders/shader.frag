@@ -9,7 +9,7 @@ struct Material {
 };
 
 struct Light {
-	vec3 position;
+	vec3 direction;
 	vec3 ambient;
 	vec3 diffuse;
 	vec3 specular;
@@ -32,7 +32,7 @@ void main()
 	vec3 ambient = diffuseColor * light.ambient;
 
 	vec3 normal = normalize(Normal);
-	vec3 lightDir = normalize(light.position - FragPos);
+	vec3 lightDir = normalize(-light.direction);
 	float diffuseAttenuation = max(dot(normal, lightDir), 0.0);
 	vec3 diffuse = diffuseAttenuation * light.diffuse * diffuseColor;
 
