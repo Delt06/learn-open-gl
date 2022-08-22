@@ -46,7 +46,7 @@ uniform DirectionalLight light;
 uniform PointLight pointLight;
 uniform SpotLight spotLight;
 
-vec3 CalculatePointLight(const in PointLight light, const vec3 diffuseColor, const vec3 specularColor, const float shininess, const vec3 normal, const vec3 viewDir)
+vec3 calculatePointLight(const in PointLight light, const vec3 diffuseColor, const vec3 specularColor, const float shininess, const vec3 normal, const vec3 viewDir)
 {
     float distance = length(light.position - FragPos);
     float constant = light.attenuationCoefficients.x;
@@ -66,7 +66,7 @@ vec3 CalculatePointLight(const in PointLight light, const vec3 diffuseColor, con
     return (diffuse + specular) * attenuation;
 }
 
-vec3 CalculateSpotLight(const in SpotLight light, const vec3 diffuseColor, const vec3 specularColor, const float shininess, const vec3 normal, const vec3 viewDir)
+vec3 calculateSpotLight(const in SpotLight light, const vec3 diffuseColor, const vec3 specularColor, const float shininess, const vec3 normal, const vec3 viewDir)
 {
     vec3 lightDir = normalize(light.position - FragPos);
     float theta = dot(lightDir, normalize(- light.direction));
@@ -101,8 +101,8 @@ void main()
 
     vec3 result = ambient + diffuse + specular;
 
-    result += CalculatePointLight(pointLight, diffuseColor, specularColor, material.shininess, normal, viewDir);
-    result += CalculateSpotLight(spotLight, diffuseColor, specularColor, material.shininess, normal, viewDir);
+    result += calculatePointLight(pointLight, diffuseColor, specularColor, material.shininess, normal, viewDir);
+    result += calculateSpotLight(spotLight, diffuseColor, specularColor, material.shininess, normal, viewDir);
 
     FragColor = vec4(result, 1);
 }
