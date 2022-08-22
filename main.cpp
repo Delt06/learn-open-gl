@@ -1,6 +1,8 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <map>
+
 #include "shader.h"
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
@@ -114,12 +116,14 @@ int main()
     }
 
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
 
     glViewport(0, 0, window_width, window_height);
 
     const shader lit_shader("./shaders/shader.vert", "./shaders/shader.frag");
     const shader light_shader("./shaders/shader.vert", "./shaders/light_shader.frag");
     const shader grass_shader("./shaders/shader.vert", "./shaders/alpha_clip.frag");
+    const shader transparent_shader("./shaders/shader.vert", "./shaders/unlit_alpha.frag");
 
     model backpack("./assets/backpack/backpack.obj");
     model cube("./assets/cube.obj");
@@ -128,6 +132,8 @@ int main()
     grass_model_params.texture_clamp = true;
     grass_model_params.texture_flip = false;
     model grass("./assets/grass/grass.obj", grass_model_params);
+
+    model glass_box("./assets/glass_box/glass_box.obj");
 
     const std::vector<glm::vec3> model_positions{
         glm::vec3(0.0f, 0.0f, 0.0f),
@@ -149,12 +155,21 @@ int main()
         glm::vec3(0.0f, 0.0f, -3.0f)
     };
 
-    std::vector<glm::vec3> vegetation = {
+    const std::vector<glm::vec3> vegetation = {
         (glm::vec3(-1.5f, 0.0f, -0.48f)),
         (glm::vec3(1.5f, 0.0f, 0.51f)),
         (glm::vec3(0.0f, 0.0f, 0.7f)),
         (glm::vec3(-0.3f, 0.0f, -2.3f)),
         (glm::vec3(0.5f, 0.0f, -0.6f)),
+    };
+
+    const std::vector<glm::vec3> glass_boxes
+    {
+        glm::vec3(0.0f, -0.48f, -1.5f),
+        glm::vec3(1.5f, 0.51f, 0.0f),
+        glm::vec3(0.0f, 0.7f, 0.0f),
+        glm::vec3(-2.3f, 0.0f, -0.3f),
+        glm::vec3(0.5f, -0.6f, 0.0f)
     };
 
     while (!glfwWindowShouldClose(window))
@@ -183,6 +198,9 @@ int main()
         // render
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        // opaque pass
+        glBlendFunc(GL_ONE, GL_ZERO);
 
         lit_shader.use();
 
@@ -261,6 +279,30 @@ int main()
             model = translate(model, grass_position);
             grass_shader.set_mat4("model", model);
             grass.draw(grass_shader);
+        }
+
+        // transparent pass
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        transparent_shader.use();
+        transparent_shader.set_mat4("projection", projection);
+        transparent_shader.set_mat4("view", view);
+
+        // sort geometry
+        std::map<float, glm::vec3> sorted_glass_boxes;
+        for (auto glass_box_position : glass_boxes)
+        {
+            float distance = length(scene_camera.position - glass_box_position);
+            sorted_glass_boxes[distance] = glass_box_position;
+        }
+
+        for (auto it = sorted_glass_boxes.rbegin(); it != sorted_glass_boxes.rend(); ++it)
+        {
+            model = glm::mat4(1.0f);
+            model = translate(model, it->second);
+            model = scale(model, glm::vec3(0.2f));
+            transparent_shader.set_mat4("model", model);
+            glass_box.draw(transparent_shader);
         }
 
         // check and call events and swap buffers
