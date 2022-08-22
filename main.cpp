@@ -231,6 +231,8 @@ int main()
         glm::vec3(-1.3f, 1.0f, -1.5f)
     };
 
+    constexpr glm::vec3 start_light_position(1.2f, 1.0f, 2.0f);
+
     while (!glfwWindowShouldClose(window))
     {
         const double current_frame_time = glfwGetTime();
@@ -246,6 +248,10 @@ int main()
 
         glEnable(GL_DEPTH_TEST);
 
+        glm::quat light_rotation = angleAxis(glm::radians(static_cast<float>(glfwGetTime()) * 180.0f),
+                                             glm::vec3(0.0f, 1.0f, 0.0f));
+        auto light_position = light_rotation * start_light_position;
+
         cube_shader.use();
         cube_shader.set_vec3("viewPos", scene_camera.position);
 
@@ -255,11 +261,16 @@ int main()
         cube_shader.set_int("material.specularMap", 1);
         cube_shader.set_float("material.shininess", 32.0f);
 
+        cube_shader.set_vec3("light.direction", -0.2f, -1.0f, -0.3f);
         cube_shader.set_vec3("light.ambient", 0.2f, 0.2f, 0.2f);
         cube_shader.set_vec3("light.diffuse", 0.5f, 0.5f, 0.5f);
         cube_shader.set_vec3("light.specular", 1.0f, 1.0f, 1.0f);
-        cube_shader.set_vec3("light.direction", -0.2f, -1.0f, -0.3f);
 
+        cube_shader.set_vec3("pointLight.position", light_position);
+        cube_shader.set_vec3("pointLight.ambient", 0.2f, 0.2f, 0.2f);
+        cube_shader.set_vec3("pointLight.diffuse", 0.5f, 0.5f, 0.5f);
+        cube_shader.set_vec3("pointLight.specular", 1.0f, 1.0f, 1.0f);
+        cube_shader.set_vec3("pointLight.attenuationCoefficients", 1.0f, 0.09f, 0.032f);
 
         const auto view = scene_camera.get_view_matrix();
         const auto projection = glm::perspective(glm::radians(scene_camera.zoom),
@@ -283,12 +294,23 @@ int main()
             model = glm::mat4(1.0f);
             model = translate(model, cube_positions[i]);
 
-            const float angle = 20.0f * i;
+            const float angle = static_cast<float>(i) * 20.0f;
             model = rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
             cube_shader.set_mat4("model", model);
 
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
+
+        light_shader.use();
+        light_shader.set_mat4("projection", projection);
+        light_shader.set_mat4("view", view);
+        model = glm::mat4(1.0f);
+        model = translate(model, light_position);
+        model = scale(model, glm::vec3(0.2f)); // a smaller cube
+        light_shader.set_mat4("model", model);
+
+        glBindVertexArray(light_vao);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
 
         // check and call events and swap buffers
         glfwSwapBuffers(window);
