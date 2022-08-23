@@ -1,3 +1,4 @@
+// ReSharper disable CppClangTidyPerformanceNoIntToPtr
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
@@ -115,8 +116,6 @@ int main()
         return -1;
     }
 
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_BLEND);
     glEnable(GL_CULL_FACE);
 
     glViewport(0, 0, window_width, window_height);
@@ -173,6 +172,77 @@ int main()
         glm::vec3(0.5f, -0.6f, 0.0f)
     };
 
+    // create frame buffer
+    unsigned int framebuffer;
+    glGenFramebuffers(1, &framebuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+    // create color attachment for the frame buffer
+    unsigned int texture_color_buffer;
+    glGenTextures(1, &texture_color_buffer);
+    glBindTexture(GL_TEXTURE_2D, texture_color_buffer);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, window_width, window_height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    // attach color to the frame buffer
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_color_buffer, 0);
+
+    // create depth/stencil attachment for the frame buffer
+    unsigned int depth_stencil_rbo;
+    glGenRenderbuffers(1, &depth_stencil_rbo);
+    glBindRenderbuffer(GL_RENDERBUFFER, depth_stencil_rbo);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, window_width, window_height);
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+    // attach depth/stencil to the frame buffer
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depth_stencil_rbo);
+
+    // validate the frame buffer
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    float blit_quad_vertices[] = {
+        // positions   // texCoords
+        -1.0f, 1.0f, 0.0f, 1.0f,
+        -1.0f, -1.0f, 0.0f, 0.0f,
+        1.0f, -1.0f, 1.0f, 0.0f,
+
+        -1.0f, 1.0f, 0.0f, 1.0f,
+        1.0f, -1.0f, 1.0f, 0.0f,
+        1.0f, 1.0f, 1.0f, 1.0f
+    };
+
+    unsigned int blit_quad_indices[] = {
+        0, 1, 2, 3, 4, 5,
+    };
+
+    unsigned int blit_quad_vao;
+    glGenVertexArrays(1, &blit_quad_vao);
+
+    unsigned int blit_quad_vbo, blit_quad_ebo;
+    glGenBuffers(1, &blit_quad_vbo);
+    glGenBuffers(1, &blit_quad_ebo);
+
+    glBindVertexArray(blit_quad_vao);
+    glBindBuffer(GL_ARRAY_BUFFER, blit_quad_vbo);
+    glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(sizeof blit_quad_vertices), &blit_quad_vertices,
+                 GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, blit_quad_ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof blit_quad_indices, &blit_quad_indices, GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, static_cast<void*>(nullptr));
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, reinterpret_cast<void*>(sizeof(float) * 2));
+
+    glBindVertexArray(0);
+
+    shader post_fx_shader("./shaders/blit.vert", "./shaders/postfx.frag");
+
     while (!glfwWindowShouldClose(window))
     {
         const double current_frame_time = glfwGetTime();
@@ -183,7 +253,6 @@ int main()
         process_input(window);
 
         // simulate
-
         std::vector<glm::vec3> light_positions;
 
         for (size_t i = 0; i < start_light_positions.size(); i++)
@@ -197,9 +266,11 @@ int main()
         }
 
         // render
+        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+        glEnable(GL_DEPTH_TEST);
+        glEnable(GL_BLEND);
         glCullFace(GL_BACK);
 
         // opaque pass
@@ -307,6 +378,18 @@ int main()
             transparent_shader.set_mat4("model", model);
             glass_box.draw(transparent_shader);
         }
+
+        // post fx
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+        glDisable(GL_DEPTH_TEST);
+        glDisable(GL_BLEND);
+
+        post_fx_shader.use();
+        glBindVertexArray(blit_quad_vao);
+        glBindTexture(GL_TEXTURE_2D, texture_color_buffer);
+        glDrawElements(GL_TRIANGLES, sizeof blit_quad_indices / sizeof(unsigned int), GL_UNSIGNED_INT, nullptr);
 
         // check and call events and swap buffers
         glfwSwapBuffers(window);
