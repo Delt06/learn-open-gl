@@ -11,7 +11,9 @@
 #include "camera.h"
 #include <vector>
 
+#include "cubemap.h"
 #include "model.h"
+#include "skybox.h"
 #include "stb_image.h"
 
 int window_width = 800;
@@ -127,6 +129,18 @@ int main()
 
     model backpack("./assets/backpack/backpack.obj");
     model cube("./assets/cube.obj");
+
+    std::string skybox_sides[] = {
+        "./assets/skybox/right.jpg",
+        "./assets/skybox/left.jpg",
+        "./assets/skybox/top.jpg",
+        "./assets/skybox/bottom.jpg",
+        "./assets/skybox/front.jpg",
+        "./assets/skybox/back.jpg",
+    };
+    cubemap skybox_cubemap(skybox_sides);
+    const shader skybox_shader("./shaders/skybox.vert", "./shaders/skybox.frag");
+    skybox scene_skybox(skybox_cubemap, skybox_shader);
 
     model_params grass_model_params;
     grass_model_params.texture_clamp = true;
@@ -273,6 +287,11 @@ int main()
         glEnable(GL_BLEND);
         glCullFace(GL_BACK);
 
+        const auto view = scene_camera.get_view_matrix();
+        const auto projection = glm::perspective(glm::radians(scene_camera.zoom),
+                                                 static_cast<float>(window_width) / static_cast<float>(window_height),
+                                                 0.1f, 100.0f);
+
         // opaque pass
         glBlendFunc(GL_ONE, GL_ZERO);
 
@@ -305,11 +324,6 @@ int main()
         lit_shader.set_vec2("spotLight.cutOff", glm::cos(glm::radians(10.0f)), glm::cos(glm::radians(12.5f)));
         lit_shader.set_vec3("spotLight.diffuse", glm::vec3(0.5f, 0.5f, 0.5f) * flashlight_intensity);
         lit_shader.set_vec3("spotLight.specular", glm::vec3(1.0f, 1.0f, 1.0f) * flashlight_intensity);
-
-        const auto view = scene_camera.get_view_matrix();
-        const auto projection = glm::perspective(glm::radians(scene_camera.zoom),
-                                                 static_cast<float>(window_width) / static_cast<float>(window_height),
-                                                 0.1f, 100.0f);
 
         lit_shader.set_mat4("view", view);
         lit_shader.set_mat4("projection", projection);
@@ -355,6 +369,9 @@ int main()
             grass.draw(grass_shader);
         }
 
+        // skybox
+        scene_skybox.draw(view, projection);
+
         // transparent pass
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -387,6 +404,7 @@ int main()
         glDisable(GL_BLEND);
 
         post_fx_shader.use();
+        post_fx_shader.set_float("intensity", 0.0f); // disable
         glBindVertexArray(blit_quad_vao);
         glBindTexture(GL_TEXTURE_2D, texture_color_buffer);
         glDrawElements(GL_TRIANGLES, sizeof blit_quad_indices / sizeof(unsigned int), GL_UNSIGNED_INT, nullptr);
