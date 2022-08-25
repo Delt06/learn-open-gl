@@ -14,7 +14,7 @@ mesh::mesh(std::vector<vertex> vertices, std::vector<unsigned> indices,
     setup_mesh();
 }
 
-void mesh::draw(const shader& shader) const
+void mesh::draw(const shader& shader, const std::vector<extra_texture>& extra_textures) const
 {
     unsigned int diffuse_number = 1, specular_number = 1;
 
@@ -31,6 +31,16 @@ void mesh::draw(const shader& shader) const
 
         shader.set_int("material." + name + number, static_cast<int>(i));
         glBindTexture(GL_TEXTURE_2D, textures[i].id);
+    }
+
+    for (unsigned int i = 0; i < extra_textures.size(); ++i)
+    {
+        const auto texture_slot_index = static_cast<unsigned int>(textures.size()) + i;
+        glActiveTexture(GL_TEXTURE0 + texture_slot_index);
+
+        const auto& extra_texture = extra_textures[i];
+        shader.set_int(extra_texture.uniform_name, static_cast<int>(texture_slot_index));
+        glBindTexture(extra_texture.type, extra_texture.id);
     }
 
     glBindVertexArray(vao_);

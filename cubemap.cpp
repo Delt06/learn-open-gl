@@ -45,3 +45,8 @@ void cubemap::bind() const
 {
     glBindTexture(GL_TEXTURE_CUBE_MAP, texture_id_);
 }
+
+GLuint cubemap::get_id() const
+{
+    return texture_id_;
+}

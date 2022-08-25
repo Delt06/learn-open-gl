@@ -21,6 +21,13 @@ struct texture
     std::string path;
 };
 
+struct extra_texture
+{
+    unsigned int id;
+    std::string uniform_name;
+    GLenum type;
+};
+
 class mesh
 {
 public:
@@ -30,7 +37,7 @@ public:
 
     mesh(std::vector<vertex> vertices, std::vector<unsigned int> indices, std::vector<texture> textures);
 
-    void draw(const shader& shader) const;
+    void draw(const shader& shader, const std::vector<extra_texture>& extra_textures) const;
 
 private:
     unsigned int vao_, vbo_, ebo_;

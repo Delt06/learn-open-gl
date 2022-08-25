@@ -4,6 +4,7 @@ struct Material {
     vec3 diffuse;
     vec3 specular;
     float shininess;
+    float reflectivity;
 
     sampler2D texture_diffuse1;
     sampler2D texture_specular1;
@@ -48,6 +49,8 @@ uniform DirectionalLight light;
 #define NR_POINT_LIGHTS 4
 uniform PointLight pointLights[NR_POINT_LIGHTS];
 uniform SpotLight spotLight;
+
+uniform samplerCube skybox; 
 
 vec3 calculateDirectionalLight(const in DirectionalLight light, const vec3 diffuseColor, const vec3 specularColor, const float shininess, const vec3 normal, const vec3 viewDir)
 {
@@ -118,6 +121,9 @@ void main()
 
     vec3 ambient = diffuseColor * light.ambient;
     result += ambient;
+
+    vec3 r = reflect(-viewDir, normal);
+    result = mix(result, vec3(texture(skybox, r)), material.reflectivity * texture(material.texture_specular1, TexCoords).r);
 
     FragColor = vec4(result, 1);
 }

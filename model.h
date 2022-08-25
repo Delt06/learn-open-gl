@@ -26,6 +26,7 @@ public:
     explicit model(const std::string& path, const model_params& params = model_params::get_default());
 
     void draw(const shader& shader) const;
+    void draw(const shader& shader, const std::vector<extra_texture>& extra_textures) const;
 
 private:
     std::vector<mesh> meshes_;

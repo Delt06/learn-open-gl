@@ -58,9 +58,15 @@ model::model(const std::string& path, const model_params& params):
 
 void model::draw(const shader& shader) const
 {
+    const std::vector<extra_texture> extra_textures;
+    draw(shader, extra_textures);
+}
+
+void model::draw(const shader& shader, const std::vector<extra_texture>& extra_textures) const
+{
     for (auto& mesh : meshes_)
     {
-        mesh.draw(shader);
+        mesh.draw(shader, extra_textures);
     }
 }
 

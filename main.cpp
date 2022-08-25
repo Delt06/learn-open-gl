@@ -302,6 +302,7 @@ int main()
         lit_shader.set_vec3("material.diffuse", 1.0f, 1.0f, 1.0f);
         lit_shader.set_vec3("material.specular", 1.0f, 1.0f, 1.0f);
         lit_shader.set_float("material.shininess", 32.0f);
+        lit_shader.set_float("material.reflectivity", 0.5f);
 
         lit_shader.set_vec3("light.direction", -0.2f, -1.0f, -0.3f);
         lit_shader.set_vec3("light.ambient", 0.2f, 0.2f, 0.2f);
@@ -325,6 +326,9 @@ int main()
         lit_shader.set_vec3("spotLight.diffuse", glm::vec3(0.5f, 0.5f, 0.5f) * flashlight_intensity);
         lit_shader.set_vec3("spotLight.specular", glm::vec3(1.0f, 1.0f, 1.0f) * flashlight_intensity);
 
+        std::vector<extra_texture> extra_textures;
+        extra_textures.push_back(extra_texture{skybox_cubemap.get_id(), "skybox", GL_TEXTURE_CUBE_MAP});
+
         lit_shader.set_mat4("view", view);
         lit_shader.set_mat4("projection", projection);
         glm::mat4 model;
@@ -340,7 +344,7 @@ int main()
             model = scale(model, glm::vec3(0.5f, 0.5f, 0.5f));
             lit_shader.set_mat4("model", model);
 
-            backpack.draw(lit_shader);
+            backpack.draw(lit_shader, extra_textures);
         }
 
         light_shader.use();
