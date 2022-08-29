@@ -257,6 +257,21 @@ int main()
 
     shader post_fx_shader("./shaders/blit.vert", "./shaders/postfx.frag");
 
+    glm::vec3 up(0, 1, 0);
+    glm::vec2 zero2(0, 0);
+    mesh geometry_grass_points(
+        {
+            {glm::vec3(-1, 0, -1), up, zero2},
+            {glm::vec3(1, 0, -1), up, zero2},
+            {glm::vec3(-1, 0, 1), up, zero2},
+            {glm::vec3(1, 0, 1), up, zero2},
+        },
+        {0, 1, 2, 3},
+        std::vector<texture>()
+    );
+    shader geometry_grass_shader("./shaders/geometry_grass.vert", "./shaders/geometry_grass.frag",
+                                 "./shaders/geometry_grass.geom");
+
     while (!glfwWindowShouldClose(window))
     {
         const double current_frame_time = glfwGetTime();
@@ -372,6 +387,16 @@ int main()
             grass_shader.set_mat4("model", model);
             grass.draw(grass_shader);
         }
+
+        geometry_grass_shader.use();
+        geometry_grass_shader.set_mat4("projection", projection);
+        geometry_grass_shader.set_mat4("view", view);
+        geometry_grass_shader.set_mat4("model", glm::mat4(1.0f));
+        geometry_grass_shader.set_float("width", 0.5f);
+        geometry_grass_shader.set_float("height", 1.0f);
+        geometry_grass_shader.set_float("bendDegree", 30.0f);
+        geometry_grass_shader.set_int("segments", 5);
+        geometry_grass_points.draw(geometry_grass_shader, std::vector<extra_texture>(), GL_POINTS);
 
         // skybox
         scene_skybox.draw(view, projection);

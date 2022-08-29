@@ -37,7 +37,7 @@ public:
 
     mesh(std::vector<vertex> vertices, std::vector<unsigned int> indices, std::vector<texture> textures);
 
-    void draw(const shader& shader, const std::vector<extra_texture>& extra_textures) const;
+    void draw(const shader& shader, const std::vector<extra_texture>& extra_textures, GLenum mode = GL_TRIANGLES) const;
 
 private:
     unsigned int vao_, vbo_, ebo_;

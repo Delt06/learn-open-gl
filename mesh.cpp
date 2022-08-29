@@ -14,7 +14,7 @@ mesh::mesh(std::vector<vertex> vertices, std::vector<unsigned> indices,
     setup_mesh();
 }
 
-void mesh::draw(const shader& shader, const std::vector<extra_texture>& extra_textures) const
+void mesh::draw(const shader& shader, const std::vector<extra_texture>& extra_textures, const GLenum mode) const
 {
     unsigned int diffuse_number = 1, specular_number = 1;
 
@@ -44,7 +44,7 @@ void mesh::draw(const shader& shader, const std::vector<extra_texture>& extra_te
     }
 
     glBindVertexArray(vao_);
-    glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(indices.size()), GL_UNSIGNED_INT, nullptr);
+    glDrawElements(mode, static_cast<GLsizei>(indices.size()), GL_UNSIGNED_INT, nullptr);
     glBindVertexArray(0);
 
     glActiveTexture(GL_TEXTURE0);
